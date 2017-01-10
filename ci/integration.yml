@@ -1,0 +1,14 @@
+---
+platform: linux
+
+image_resource:
+  type: docker-image
+  source:
+    repository: java
+    tag: '8'
+
+inputs:
+- name: my-product
+
+run:
+  path: ci/unit.sh

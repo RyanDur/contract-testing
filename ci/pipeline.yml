@@ -1,0 +1,112 @@
+---
+resources:
+- name: my-product
+  type: git
+  source:
+    uri: git@github.com:RyanDur/contract-testing.git
+    branch: master
+    private_key: {{my-product-github-private-key}}
+
+- name: version
+  type: semver
+  source:
+    bucket: my-product-pipeline-artifacts
+    key: current-version
+    access_key_id: {{s3-access-key-id}}
+    secret_access_key: {{s3-secret-access-key}}
+    endpoint: http://127.0.0.1:9000
+    disable_ssl: true
+
+- name: my-product-rc
+  type: s3
+  source:
+    bucket: my-product-pipeline-artifacts
+    regexp: my-product-(.*).tgz
+    access_key_id: {{s3-access-key-id}}
+    secret_access_key: {{s3-secret-access-key}}
+    endpoint: http://127.0.0.1:9000
+    disable_ssl: true
+
+- name: my-product-final
+  type: s3
+  source:
+    bucket: my-product
+    regexp: my-product-(.*).tgz
+    access_key_id: {{s3-access-key-id}}
+    secret_access_key: {{s3-secret-access-key}}
+    endpoint: http://127.0.0.1:9000
+    disable_ssl: true
+
+jobs:
+- name: unit
+  plan:
+  - get: my-product
+    trigger: true
+  - task: unit
+    file: my-product/ci/unit.yml
+
+- name: build-rc
+  serial_groups: [version]
+  plan:
+  - get: my-product
+    passed: [unit]
+    trigger: true
+  - get: version
+    params: {pre: rc}
+  - task: build-artifact
+    file: my-product/ci/build-artifact.yml
+  - put: my-product-rc
+    params: {file: built-artifact/my-product-*.tgz}
+  - put: version
+    params: {file: version/number}
+
+- name: integration
+  serial: true
+  plan:
+  - get: my-product-rc
+    trigger: true
+    passed: [build-rc]
+  - get: my-product
+    passed: [build-rc]
+  - task: integration
+    file: my-product/ci/integration.yml
+#    params:
+#      API_ENDPOINT: {{integration-api-endpoint}}
+#      ACCESS_KEY: {{integration-access-key}}
+
+- name: shipit
+  serial_groups: [version]
+  plan:
+  - get: my-product-rc
+    passed: [integration]
+  - get: my-product
+    passed: [integration]
+  - get: version
+    params: {bump: final}
+  - task: promote-to-final
+    file: my-product/ci/promote-to-final.yml
+  - put: my-product-final
+    params: {file: built-product/my-product-*.tgz}
+  - put: version
+    params: {file: version/number}
+
+- name: major
+  serial_groups: [version]
+  plan:
+  - put: version
+    params: {bump: major, pre: rc}
+
+- name: minor
+  serial_groups: [version]
+  plan:
+  - put: version
+    params: {bump: minor, pre: rc}
+
+- name: patch
+  serial_groups: [version]
+  plan:
+  - get: version
+    passed: [shipit]
+    trigger: true
+  - put: version
+    params: {bump: patch, pre: rc}

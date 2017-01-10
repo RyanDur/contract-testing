@@ -11,4 +11,4 @@ inputs:
 - name: my-product
 
 run:
-  path: ci/unit.sh
+  path: my-product/ci/unit.sh

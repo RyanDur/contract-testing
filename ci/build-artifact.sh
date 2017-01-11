@@ -5,5 +5,5 @@ set -e -x
 export TERM=${TERM:-dumb}
 
 pushd my-product
-  ./gradlew clean check
+  ./gradlew clean assemble
 popd

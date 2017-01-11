@@ -1,0 +1,18 @@
+---
+platform: linux
+
+image_resource:
+  type: docker-image
+  source:
+    repository: java
+    tag: '8'
+
+inputs:
+- name: my-product
+- name: version
+
+outputs:
+- name: built-artifact
+
+run:
+  path: my-product/ci/build-artifact.sh

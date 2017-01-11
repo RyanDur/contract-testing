@@ -14,7 +14,7 @@ resources:
     key: current-version
     access_key_id: {{s3-access-key-id}}
     secret_access_key: {{s3-secret-access-key}}
-    endpoint: http://127.0.0.1:9000
+    endpoint: http://10.0.0.5:9000
     disable_ssl: true
 
 - name: my-product-rc
@@ -24,7 +24,7 @@ resources:
     regexp: my-product-(.*).tgz
     access_key_id: {{s3-access-key-id}}
     secret_access_key: {{s3-secret-access-key}}
-    endpoint: http://127.0.0.1:9000
+    endpoint: http://10.0.0.5:9000
     disable_ssl: true
 
 - name: my-product-final
@@ -34,8 +34,9 @@ resources:
     regexp: my-product-(.*).tgz
     access_key_id: {{s3-access-key-id}}
     secret_access_key: {{s3-secret-access-key}}
-    endpoint: http://127.0.0.1:9000
+    endpoint: http://10.0.0.5:9000
     disable_ssl: true
+    bucket: contract-test-jars
 
 jobs:
 - name: unit

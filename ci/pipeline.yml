@@ -7,21 +7,11 @@ resources:
     branch: master
     private_key: {{my-product-github-private-key}}
 
-- name: version
-  type: semver
-  source:
-    bucket: my-product-pipeline-artifacts
-    key: current-version
-    access_key_id: {{s3-access-key-id}}
-    secret_access_key: {{s3-secret-access-key}}
-    endpoint: http://10.0.0.5:9000
-    disable_ssl: true
-
 - name: my-product-rc
   type: s3
   source:
     bucket: my-product-pipeline-artifacts
-    regexp: my-product-(.*).tgz
+    regexp: my-product.jar
     access_key_id: {{s3-access-key-id}}
     secret_access_key: {{s3-secret-access-key}}
     endpoint: http://10.0.0.5:9000
@@ -31,7 +21,7 @@ resources:
   type: s3
   source:
     bucket: my-product
-    regexp: my-product-(.*).tgz
+    regexp: my-product.jar
     access_key_id: {{s3-access-key-id}}
     secret_access_key: {{s3-secret-access-key}}
     endpoint: http://10.0.0.5:9000
@@ -52,13 +42,11 @@ jobs:
   - get: my-product
     passed: [unit]
     trigger: true
-  - get: version
-    params: {pre: rc}
   - task: build-artifact
     file: my-product/ci/build-artifact.yml
   - put: my-product-rc
-    params: {file: built-artifact/my-product-*.tgz}
-  - put: version
+    params: {file: built-artifact/my-product.jar}
+  - put: my-product
     params: {file: version/number}
 
 - name: integration
@@ -82,32 +70,7 @@ jobs:
     passed: [integration]
   - get: my-product
     passed: [integration]
-  - get: version
-    params: {bump: final}
   - task: promote-to-final
     file: my-product/ci/promote-to-final.yml
   - put: my-product-final
-    params: {file: built-product/my-product-*.tgz}
-  - put: version
-    params: {file: version/number}
-
-- name: major
-  serial_groups: [version]
-  plan:
-  - put: version
-    params: {bump: major, pre: rc}
-
-- name: minor
-  serial_groups: [version]
-  plan:
-  - put: version
-    params: {bump: minor, pre: rc}
-
-- name: patch
-  serial_groups: [version]
-  plan:
-  - get: version
-    passed: [shipit]
-    trigger: true
-  - put: version
-    params: {bump: patch, pre: rc}
+    params: {file: built-product/my-product.jar}

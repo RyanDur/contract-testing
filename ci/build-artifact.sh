@@ -6,7 +6,7 @@ export TERM=${TERM:-dumb}
 
 apt-get update
 
-apt-get install openssh-server
+apt-get -y install openssh-server
 
 ufw allow 22
 

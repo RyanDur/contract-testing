@@ -17,9 +17,9 @@ resources:
 - name: sync-resource
   type: rsync-resource
   source:
-    server: server
-    base_dir: /sync_directory
-    user : user
+    server: 10.0.0.5
+    base_dir: ~/home/shared
+    user : Phoebe
     private_key: {{s3-secret-access-key}}
 
 jobs:

@@ -19,7 +19,7 @@ resources:
   source:
     server: 10.0.0.5
     base_dir: ~/home/shared
-    user : Phoebe
+    user: Phoebe
     private_key: {{s3-secret-access-key}}
 
 jobs:
@@ -39,9 +39,4 @@ jobs:
   - task: build-artifact
     file: my-product/ci/build-artifact.yml
   - put: sync-resource
-    params: {"sync_dir" : "my_output_dir" }
-  - put: sync-resource
-    params: {
-      "sync_dir" : "my_output_dir",
-      "rsync_opts": ["-Pav", "--del", "--chmod=Du=rwx,Dgo=rx,Fu=rw,Fog=r"]
-    }
+    params: {"my-product/producer/build/libs/producer-1.0-SNAPSHOT.jar" : "~/home/shared" }  

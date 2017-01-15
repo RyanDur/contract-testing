@@ -19,7 +19,7 @@ resources:
   source:
     server: 10.0.0.5
     base_dir: ~/home/shared
-    user: root
+    user: Phoebe
     private_key: {{my-product-github-private-key}}
 
 jobs:

@@ -20,7 +20,7 @@ resources:
     server: 10.0.0.5
     base_dir: ~/home/shared
     user: Phoebe
-    private_key: {{s3-secret-access-key}}
+    private_key: {{my-product-github-private-key}}
 
 jobs:
 - name: unit
@@ -39,4 +39,4 @@ jobs:
   - task: build-artifact
     file: my-product/ci/build-artifact.yml
   - put: sync-resource
-    params: {"my-product/producer/build/libs/producer-1.0-SNAPSHOT.jar" : "~/home/shared" }  
+    params: {"my-product/producer/build/libs/producer-1.0-SNAPSHOT.jar" : "~/home/shared" }

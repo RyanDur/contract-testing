@@ -10,7 +10,7 @@ apt-get -y install openssh-server
 
 apt-get -y install ufw
 
-ufw allow 22
+sudo ufw allow 22
 
 pushd my-product
   ./gradlew clean assemble

@@ -1,4 +1,11 @@
 ---
+resource_types:
+- name: rsync-resource
+  type: docker-image
+  source:
+      repository: mrsixw/concourse-rsync-resource
+      tag: latest
+
 resources:
 - name: my-product
   type: git
@@ -7,26 +14,13 @@ resources:
     branch: master
     private_key: {{my-product-github-private-key}}
 
-- name: my-product-rc
-  type: s3
+- name: sync-resource
+  type: rsync-resource
   source:
-    bucket: my-product-pipeline-artifacts
-    regexp: my-product.jar
-    access_key_id: {{s3-access-key-id}}
-    secret_access_key: {{s3-secret-access-key}}
-    endpoint: http://10.0.0.5:9000
-    disable_ssl: true
-
-- name: my-product-final
-  type: s3
-  source:
-    bucket: my-product
-    regexp: my-product.jar
-    access_key_id: {{s3-access-key-id}}
-    secret_access_key: {{s3-secret-access-key}}
-    endpoint: http://10.0.0.5:9000
-    disable_ssl: true
-    bucket: contract-test-jars
+    server: server
+    base_dir: /sync_directory
+    user : user
+    private_key: {{s3-secret-access-key}}
 
 jobs:
 - name: unit
@@ -44,33 +38,10 @@ jobs:
     trigger: true
   - task: build-artifact
     file: my-product/ci/build-artifact.yml
-  - put: my-product-rc
-    params: {file: built-artifact/my-product.jar}
-  - put: my-product
-    params: {file: version/number}
-
-- name: integration
-  serial: true
-  plan:
-  - get: my-product-rc
-    trigger: true
-    passed: [build-rc]
-  - get: my-product
-    passed: [build-rc]
-  - task: integration
-    file: my-product/ci/integration.yml
-#    params:
-#      API_ENDPOINT: {{integration-api-endpoint}}
-#      ACCESS_KEY: {{integration-access-key}}
-
-- name: shipit
-  serial_groups: [version]
-  plan:
-  - get: my-product-rc
-    passed: [integration]
-  - get: my-product
-    passed: [integration]
-  - task: promote-to-final
-    file: my-product/ci/promote-to-final.yml
-  - put: my-product-final
-    params: {file: built-product/my-product.jar}
+  - put: sync-resource
+    params: {"sync_dir" : "my_output_dir" }
+  - put: sync-resource
+    params: {
+      "sync_dir" : "my_output_dir",
+      "rsync_opts": ["-Pav", "--del", "--chmod=Du=rwx,Dgo=rx,Fu=rw,Fog=r"]
+    }

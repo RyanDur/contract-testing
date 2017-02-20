@@ -16,6 +16,11 @@ import java.math.BigDecimal;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+/*
+for more information on using stubs:
+http://cloud.spring.io/spring-cloud-static/spring-cloud-contract/1.0.3.RELEASE/#_spring_cloud_contract_stub_runner
+ */
+
 @RunWith(SpringRunner.class)
 @SpringBootTest
 @AutoConfigureStubRunner(ids = {

@@ -1,51 +1,59 @@
 group 'com.example'
-version '1.0-SNAPSHOT'
+version '1.0.0-SNAPSHOT'
 
 buildscript {
-    repositories {
-        mavenCentral()
-        mavenLocal()
-        maven { url "http://repo.spring.io/snapshot" }
-        maven { url "http://repo.spring.io/milestone" }
-        maven { url "http://repo.spring.io/release" }
-    }
+  repositories {
+    mavenCentral()
+  }
 
-    dependencies {
-        classpath "org.springframework.boot:spring-boot-gradle-plugin:1.4.0.BUILD-SNAPSHOT"
-        classpath "org.springframework.cloud:spring-cloud-contract-gradle-plugin:1.0.1.RELEASE"
-    }
+  dependencies {
+    classpath "org.springframework.boot:spring-boot-gradle-plugin:1.5.1.RELEASE"
+    classpath "org.springframework.cloud:spring-cloud-contract-gradle-plugin:1.0.3.RELEASE"
+  }
 }
 
 repositories {
-    mavenCentral()
-    mavenLocal()
-    maven { url "http://repo.spring.io/snapshot" }
-    maven { url "http://repo.spring.io/milestone" }
-    maven { url "http://repo.spring.io/release" }
+  mavenCentral()
 }
 
-apply plugin: 'groovy'
 apply plugin: 'org.springframework.boot'
 apply plugin: 'spring-cloud-contract'
 apply plugin: 'maven-publish'
 
 dependencyManagement {
-    imports {
-        mavenBom 'org.springframework.cloud:spring-cloud-contract-dependencies:1.0.1.RELEASE'
-    }
-}
-
-contracts {
-    packageWithBaseClasses = 'com.example'
+  imports {
+    mavenBom 'org.springframework.cloud:spring-cloud-contract-dependencies:1.0.3.RELEASE'
+  }
 }
 
 dependencies {
-    compile("org.springframework.boot:spring-boot-starter-web")
-    compile("org.springframework.boot:spring-boot-starter-actuator")
+  compile group: 'org.springframework.boot', name: 'spring-boot-starter-web'
+  compile group: 'org.springframework.boot', name: 'spring-boot-starter-actuator'
 
-    testCompile 'org.springframework.cloud:spring-cloud-starter-contract-verifier'
+  testCompile group: 'org.springframework.boot', name: 'spring-boot-starter-test'
+  testCompile group: 'org.springframework.cloud', name: 'spring-cloud-starter-contract-verifier'
+}
+
+contracts {
+  packageWithBaseClasses = "com.example.contracts"
+  basePackageForTests = "com.example.contracts"
+  generatedTestSourcesDir = project.file("${project.rootDir}/producer/src/test/java")
+}
+
+ext {
+  contractsDir = file("mappings")
+  stubsOutputDirRoot = file("${project.buildDir}/production/${project.name}-stubs/")
+}
+
+publishing {
+  publications {
+    stubs(MavenPublication) {
+      artifactId "${project.name}-stubs"
+      artifact verifierStubsJar
+    }
+  }
 }
 
 clean.doFirst {
-    delete "~/.m2/repository/com/example/http-server-dsl-gradle"
+  delete "~/.m2/repository/com/example/http-server-dsl-gradle"
 }
